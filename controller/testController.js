@@ -9,7 +9,7 @@ import { getAIService } from "../modules/aiService.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 import xlsx from "xlsx";
-import { PDFParse } from "pdf-parse";
+// import { PDFParse } from "pdf-parse"; // PDF import removed
 import crypto from "crypto";
 
 // 1. GENERATE MOCK TEST

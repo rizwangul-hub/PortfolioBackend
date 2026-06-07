@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Project } from "../models/Project.js";
+import { Project } from "../models/project.js";
 import { uploadToCloudinary } from "../config/cloudinary.js";
 
 // Create Project
