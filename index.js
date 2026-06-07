@@ -2,10 +2,6 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import helmet from "helmet";
-import authRoutes from "./routes/auth.js";
-import testRoutes from "./routes/testRoutes.js";
-import adminDashboardRoutes from "./routes/adminRoutes.js";
-import studentRoutes from "./routes/studentRoutes.js";
 import projectRoutes from "./routes/project.js";
 import { connectionDB } from "./config/db.js";
 import { sanitizeInput } from "./middleware/security.js";
@@ -62,9 +58,6 @@ app.get("/", (req, res) => {
     message: "Welcome to the SmartPrep AI Backend API",
     status: "active",
     endpoints: {
-      auth: "/api/auth",
-      tests: "/api/tests",
-      students: "/api/students",
       admin: "/api/admin",
       projects: "/api/projects",
       health: "/api/health",
@@ -73,10 +66,6 @@ app.get("/", (req, res) => {
 });
 
 // API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/tests", testRoutes);
-app.use("/api/admin", adminDashboardRoutes);
-app.use("/api/students", studentRoutes);
 app.use("/api/projects", projectRoutes);
 
 // Health Check
