@@ -13,6 +13,15 @@ import { sanitizeInput } from "../middleware/security.js";
 // Load environment variables
 dotenv.config();
 
+// Improve visibility for serverless crashes: log unhandled errors
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+});
+
 // Connect to database
 connectionDB();
 
