@@ -1,11 +1,24 @@
 import mongoose from "mongoose";
 
 export const connectionDB = async () => {
+  const mongoUrl = process.env.MONGO_URL;
+
+  if (!mongoUrl) {
+    console.warn(
+      "⚠️  MONGO_URL is not set. Skipping DB connection (serverless-safe).",
+    );
+    return;
+  }
+
   try {
-    await mongoose.connect(process.env.MONGO_URL);
+    // Use recommended options to avoid deprecation warnings
+    await mongoose.connect(mongoUrl, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log("✅ Database Connected Successfully");
   } catch (error) {
     console.error("❌ Database Connection Error:", error.message);
-    process.exit(1);
+    // Do not exit in serverless environments; allow function to handle connection errors
   }
 };
