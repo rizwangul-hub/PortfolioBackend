@@ -22,27 +22,40 @@ const PORT = process.env.PORT || 5000;
 // Security Middlewares
 app.use(helmet());
 
-const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+// Allowed frontend URLs
+const allowedOrigins = (
+  process.env.FRONTEND_URL ||
+  "http://localhost:5173,https://full-stack-portfolio-4uixfdeer-rizwangul-hubs-projects.vercel.app"
+)
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow Postman, mobile apps, server-to-server requests
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      const cleanOrigin = origin.replace(/\/$/, "");
+
+      if (allowedOrigins.includes(cleanOrigin)) {
         callback(null, true);
       } else {
-        callback(new Error(`CORS policy: origin ${origin} not allowed`));
+        console.log("Blocked Origin:", cleanOrigin);
+        callback(new Error(`CORS policy: origin ${cleanOrigin} not allowed`));
       }
     },
     credentials: true,
-  }),
+  })
 );
+
 app.use(express.json());
 app.use(sanitizeInput);
 
-// Main entry route
+// Main route
 app.get("/", (req, res) => {
   res.json({
     message: "Welcome to the SmartPrep AI Backend API",
@@ -52,6 +65,8 @@ app.get("/", (req, res) => {
       tests: "/api/tests",
       students: "/api/students",
       admin: "/api/admin",
+      projects: "/api/projects",
+      health: "/api/health",
     },
   });
 });
@@ -63,7 +78,7 @@ app.use("/api/admin", adminDashboardRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/projects", projectRoutes);
 
-// Health check endpoint
+// Health Check
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "OK",
@@ -72,24 +87,25 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// 404 Route handler
-app.use((req, res, next) => {
+// 404 Handler
+app.use((req, res) => {
   res.status(404).json({
     error: "Not Found",
     message: `Cannot ${req.method} ${req.url}`,
   });
 });
 
-// Global error handling middleware
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
+
+  res.status(err.status || 500).json({
     error: "Internal Server Error",
-    message: err.message,
+    message: err.message || "Something went wrong",
   });
 });
 
-// Start server
+// Start Server
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
