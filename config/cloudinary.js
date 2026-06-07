@@ -4,8 +4,12 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } =
-  process.env;
+const CLOUDINARY_CLOUD_NAME =
+  process.env.CLOUDINARY_CLOUD_NAME || process.env.cloudinary_cloud_name;
+const CLOUDINARY_API_KEY =
+  process.env.CLOUDINARY_API_KEY || process.env.cloudinary_api_key;
+const CLOUDINARY_API_SECRET =
+  process.env.CLOUDINARY_API_SECRET || process.env.cloudinary_api_secret;
 
 const CLOUDINARY_CONFIGURED = Boolean(
   CLOUDINARY_CLOUD_NAME && CLOUDINARY_API_KEY && CLOUDINARY_API_SECRET,

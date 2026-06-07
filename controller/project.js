@@ -23,7 +23,7 @@ export const projectCreate = async (req, res) => {
 
     const existingProject = await Project.findOne({
       title,
-      user: req.user._id,
+      user: req.user.id,
     });
 
     if (existingProject) {
@@ -48,7 +48,7 @@ export const projectCreate = async (req, res) => {
       liveLink,
       githubLink: githubLink || "",
       technologies: techArray,
-      user: req.user._id,
+      user: req.user.id,
     });
 
     return res.status(201).json({
@@ -172,7 +172,7 @@ export const updateProject = async (req, res) => {
     }
 
     const project = await Project.findOneAndUpdate(
-      { _id: id, user: req.user._id },
+      { _id: id, user: req.user.id },
       updates,
       { new: true, runValidators: true },
     ).select("-__v");

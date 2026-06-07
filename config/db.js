@@ -11,11 +11,8 @@ export const connectionDB = async () => {
   }
 
   try {
-    // Use recommended options to avoid deprecation warnings
-    await mongoose.connect(mongoUrl, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    // Mongoose 6+ no longer requires these options; they are enabled by default.
+    await mongoose.connect(mongoUrl);
     console.log("✅ Database Connected Successfully");
   } catch (error) {
     console.error("❌ Database Connection Error:", error.message);
