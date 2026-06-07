@@ -1,12 +1,9 @@
 {
   "version": 2,
   "buildCommand": "npm install",
-  "env": {
-    "NODEJS_RUNTIME": "nodejs20.x"
-  },
   "functions": {
     "api/**/*.js": {
-      "runtime": "nodejs20.x"
+      "runtime": "nodejs18.x"
     }
   },
   "routes": [
