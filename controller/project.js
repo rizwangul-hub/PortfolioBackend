@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import { Project } from "../models/project.js";
+﻿import mongoose from "mongoose";
+import { Project } from "../models/Project.js";
 import { uploadToCloudinary } from "../config/cloudinary.js";
 
 export const projectCreate = async (req, res) => {
