@@ -9,27 +9,31 @@ import { sanitizeInput, apiLimiter } from "./middleware/security.js";
 
 const app = express();
 
-const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
-  .split(",")
-  .map((origin) => origin.trim().replace(/\/$/, ""))
-  .filter(Boolean);
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://full-stack-portfolio-q7ej3qsc9-rizwangul-hubs-projects.vercel.app",
+  ...(process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(",")
+        .map((origin) => origin.trim().replace(/\/$/, ""))
+        .filter(Boolean)
+    : []),
+];
 
 app.use(helmet());
 app.use(
   cors({
-    origin: (origin, callback) => {
+    origin: function (origin, callback) {
       if (!origin) return callback(null, true);
 
-      const cleanOrigin = origin.replace(/\/$/, "");
-      if (allowedOrigins.includes(cleanOrigin)) {
-        callback(null, true);
-      } else {
-        console.warn("Blocked Origin:", cleanOrigin);
-        callback(new Error(`CORS policy: origin ${cleanOrigin} not allowed`));
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
       }
+
+      console.log("❌ Blocked Origin:", origin);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-  }),
+  })
 );
 
 app.use(express.json({ limit: "50mb" }));
