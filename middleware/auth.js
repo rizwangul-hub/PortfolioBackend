@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
 
-// Regular user authentication
 export const authMiddleware = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -11,12 +10,24 @@ export const authMiddleware = (req, res, next) => {
       });
     }
 
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is not configured.");
+      return res.status(500).json({
+        success: false,
+        message: "Authentication is not configured correctly.",
+      });
+    }
+
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = decoded; // Contains id, email, role, desiredExam
+    req.user = {
+      ...decoded,
+      id: decoded.id || decoded.sub || null,
+    };
     next();
   } catch (error) {
+    console.error("Authentication error:", error);
     return res.status(401).json({
       success: false,
       message: "Invalid or expired token.",
@@ -24,7 +35,6 @@ export const authMiddleware = (req, res, next) => {
   }
 };
 
-// Admin role check
 export const adminMiddleware = (req, res, next) => {
   if (!req.user || req.user.role !== "admin") {
     return res.status(403).json({

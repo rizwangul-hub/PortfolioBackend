@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import { Project } from "../models/project.js";
 import { uploadToCloudinary } from "../config/cloudinary.js";
 
-// Create Project
 export const projectCreate = async (req, res) => {
   try {
     const { title, description, liveLink, githubLink, technologies } = req.body;
@@ -10,14 +9,21 @@ export const projectCreate = async (req, res) => {
     if (!title || !description || !liveLink) {
       return res.status(400).json({
         success: false,
-        message: "Title, description, and live demo link are required",
+        message: "Title, description, and liveLink are required.",
       });
     }
 
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: "Project image is required",
+        message: "Project image is required.",
+      });
+    }
+
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized.",
       });
     }
 
@@ -29,11 +35,12 @@ export const projectCreate = async (req, res) => {
     if (existingProject) {
       return res.status(409).json({
         success: false,
-        message: "You already have a project with this title",
+        message: "A project with this title already exists.",
       });
     }
 
     const imageUrl = await uploadToCloudinary(req.file.buffer);
+
     const techArray = technologies
       ? technologies
           .split(",")
@@ -53,27 +60,27 @@ export const projectCreate = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Project created successfully",
+      message: "Project created successfully.",
       data: project,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Create Project Error:", error);
 
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Internal Server Error",
     });
   }
 };
 
-// Get All Projects
-export const allProjects = async (req, res) => {
+export const getAllProjects = async (req, res) => {
   try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+    const skip = (page - 1) * limit;
+
     const sortOption =
       req.query.sort === "oldest" ? { createdAt: 1 } : { createdAt: -1 };
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
 
     const total = await Project.countDocuments();
     const projects = await Project.find()
@@ -87,79 +94,67 @@ export const allProjects = async (req, res) => {
       total,
       page,
       limit,
+      pagination: {
+        totalPages: Math.max(Math.ceil(total / limit), 1),
+        page,
+      },
       data: projects,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Get Projects Error:", error);
+
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Internal Server Error",
     });
   }
 };
 
-// Delete Project
-export const deleteProject = async (req, res) => {
+export const singleProject = async (req, res) => {
   try {
-    const projectId = req.params.id;
+    const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid Project ID",
+        message: "Invalid Project ID.",
       });
     }
 
-    const project = await Project.findOneAndDelete({
-      _id: projectId,
-      user: req.user._id,
-    });
-
+    const project = await Project.findById(id).select("-__v");
     if (!project) {
       return res.status(404).json({
         success: false,
-        message: "Project not found",
+        message: "Project not found.",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Project deleted successfully",
+      data: project,
     });
   } catch (error) {
+    console.error("Get Single Project Error:", error);
+
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Internal Server Error",
     });
   }
 };
 
-// Get Single Project
-export const singleProject = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const project = await Project.findOne({
-      _id: id,
-      user: req.user._id,
-    }).select("-__v");
-    if (!project) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Project not found" });
-    }
-    return res.status(200).json({ success: true, data: project });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// Update Project
 export const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = { ...req.body };
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Project ID.",
+      });
+    }
+
+    const updates = { ...req.body };
     if (req.file) {
       updates.image = await uploadToCloudinary(req.file.buffer);
     }
@@ -178,17 +173,60 @@ export const updateProject = async (req, res) => {
     ).select("-__v");
 
     if (!project) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Project not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Project not found.",
+      });
     }
+
     return res.status(200).json({
       success: true,
-      message: "Project updated successfully",
+      message: "Project updated successfully.",
       data: project,
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("Update Project Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+export const deleteProject = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Project ID.",
+      });
+    }
+
+    const project = await Project.findOneAndDelete({
+      _id: id,
+      user: req.user.id,
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Project deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Delete Project Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };

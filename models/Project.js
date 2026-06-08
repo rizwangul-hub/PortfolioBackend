@@ -23,15 +23,21 @@ const projectSchema = new mongoose.Schema(
     githubLink: {
       type: String,
       trim: true,
+      default: "",
     },
     technologies: {
       type: [String],
       default: [],
     },
+    user: {
+      type: String,
+      required: [true, "Project owner is required"],
+      default: "admin",
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export const Project = mongoose.model("Project", projectSchema);

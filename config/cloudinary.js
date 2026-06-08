@@ -1,8 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const CLOUDINARY_CLOUD_NAME =
   process.env.CLOUDINARY_CLOUD_NAME || process.env.cloudinary_cloud_name;
@@ -44,17 +41,14 @@ export const upload = multer({
   },
 });
 
-// Helper function to upload buffer stream to Cloudinary
-export const uploadToCloudinary = (fileBuffer) => {
-  return new Promise((resolve, reject) => {
-    if (!CLOUDINARY_CONFIGURED) {
-      return reject(
-        new Error(
-          "Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET.",
-        ),
-      );
-    }
+export const uploadToCloudinary = async (fileBuffer) => {
+  if (!CLOUDINARY_CONFIGURED) {
+    throw new Error(
+      "Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET.",
+    );
+  }
 
+  return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: "portfolio_projects",
@@ -67,6 +61,7 @@ export const uploadToCloudinary = (fileBuffer) => {
         resolve(result.secure_url);
       },
     );
+
     uploadStream.end(fileBuffer);
   });
 };
