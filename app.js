@@ -46,6 +46,7 @@ app.get("/", (req, res) => {
       projects: "/api/projects",
       admin: "/api/admin",
       contact: "/api/contact",
+      frontend: process.env.FRONTEND_URL || "http://localhost:5173",
     },
   });
 });
