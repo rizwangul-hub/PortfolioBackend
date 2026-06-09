@@ -36,17 +36,29 @@ export const submitContact = async (req, res) => {
       process.env.EMAIL_PASS &&
       process.env.CONTACT_RECEIVER_EMAIL;
 
-    if (isEmailConfigured) {
-      try {
-        await transporter.sendMail(mailOptions);
-        console.log(`✉️ Notification email sent to ${process.env.CONTACT_RECEIVER_EMAIL}`);
-      } catch (emailError) {
-        console.error("❌ Nodemailer failed to send email:", emailError);
-      }
-    } else {
-      console.warn(
-        "⚠️ Email delivery skipped because EMAIL_USER, EMAIL_PASS, or CONTACT_RECEIVER_EMAIL is not configured.",
+    if (!isEmailConfigured) {
+      console.error(
+        "❌ Email delivery skipped because EMAIL_USER, EMAIL_PASS, or CONTACT_RECEIVER_EMAIL is not configured.",
       );
+      return res.status(500).json({
+        success: false,
+        message:
+          "Email is not configured correctly. Please set EMAIL_USER, EMAIL_PASS, and CONTACT_RECEIVER_EMAIL.",
+      });
+    }
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(
+        `✉️ Notification email sent to ${process.env.CONTACT_RECEIVER_EMAIL}`,
+      );
+    } catch (emailError) {
+      console.error("❌ Nodemailer failed to send email:", emailError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send contact email. Please try again later.",
+        error: emailError.message,
+      });
     }
 
     return res.status(201).json({
