@@ -6,6 +6,7 @@ import adminDashboardRoutes from "./routes/adminRoutes.js";
 import projectRoutes from "./routes/project.js";
 import contactRoutes from "./routes/contact.js";
 import { sanitizeInput, apiLimiter } from "./middleware/security.js";
+import { connectionDB } from "./config/db.js";
 
 const app = express();
 
@@ -47,13 +48,27 @@ app.use(
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(sanitizeInput);
 app.use(apiLimiter);
+
+// Ensure DB connection is available before handling requests.
+// In serverless environments this will await an existing cached connection or establish one.
+app.use(async (req, res, next) => {
+  try {
+    await connectionDB();
+    return next();
+  } catch (err) {
+    console.error("❌ DB unavailable for request:", err);
+    return res
+      .status(503)
+      .json({ success: false, message: "Database unavailable" });
+  }
+});
 
 app.get("/", (req, res) => {
   res.status(200).json({

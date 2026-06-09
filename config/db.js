@@ -7,7 +7,7 @@ if (!globalThis.mongooseCache) {
 
 mongoose.connection.on("connected", () => {
   console.log(
-    "✅ MongoDB connected (readyState: ",
+    "✅ MongoDB connected (readyState:",
     mongoose.connection.readyState,
     ")",
   );
@@ -22,7 +22,7 @@ mongoose.connection.on("disconnected", () => {
 });
 
 export const connectionDB = async () => {
-  const mongoUrl = process.env.MONGO_URL?.trim();
+  const mongoUrl = String(process.env.MONGO_URL || "").trim();
 
   if (!mongoUrl) {
     throw new Error(
@@ -30,28 +30,32 @@ export const connectionDB = async () => {
     );
   }
 
+  // Reuse existing connection when available (serverless-friendly)
   if (cached.conn) {
     console.log("✅ Reusing existing MongoDB connection");
     return cached.conn;
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose
-      .connect(mongoUrl, {
-        dbName: process.env.DB_NAME,
-        bufferCommands: false,
-        serverSelectionTimeoutMS: 10000,
-        socketTimeoutMS: 45000,
-      })
-      .then((mongooseInstance) => {
+    console.log("🔌 Establishing new MongoDB connection...");
+    cached.promise = (async () => {
+      try {
+        const mongooseInstance = await mongoose.connect(mongoUrl, {
+          dbName: process.env.DB_NAME,
+          bufferCommands: false,
+          serverSelectionTimeoutMS: 10000,
+          socketTimeoutMS: 45000,
+        });
+
         cached.conn = mongooseInstance;
+        console.log("✅ MongoDB connection established");
         return mongooseInstance;
-      })
-      .catch((error) => {
+      } catch (err) {
         cached.promise = null;
-        console.error("❌ MongoDB connection failed:", error);
-        throw error;
-      });
+        console.error("❌ MongoDB connection failed:", err);
+        throw err;
+      }
+    })();
   }
 
   cached.conn = await cached.promise;
