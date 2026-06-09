@@ -10,10 +10,10 @@ import { connectionDB } from "./config/db.js";
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://full-stack-portfolio-q7ej3qsc9-rizwangul-hubs-projects.vercel.app",
-];
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+  .split(",")
+  .map((o) => o.trim().replace(/\/$/, ""))
+  .filter(Boolean);
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
