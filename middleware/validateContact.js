@@ -1,5 +1,5 @@
 export const validateContact = (req, res, next) => {
-  const { name, email, subject, message } = req.body;
+  const { name, email, whatsapp, subject, message } = req.body;
   const errors = {};
 
   // Validate Name
@@ -16,6 +16,13 @@ export const validateContact = (req, res, next) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
       errors.email = "Please enter a valid email address";
+    }
+  }
+
+  if (whatsapp && whatsapp.trim()) {
+    const whatsappRegex = /^[+]?([0-9\s\-()]){7,25}$/;
+    if (!whatsappRegex.test(whatsapp.trim())) {
+      errors.whatsapp = "Please enter a valid WhatsApp number";
     }
   }
 

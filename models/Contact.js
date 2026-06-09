@@ -17,6 +17,11 @@ const contactSchema = new mongoose.Schema(
       type: String,
       required: [true, "Subject is required"],
     },
+    whatsapp: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     message: {
       type: String,
       required: [true, "Message is required"],
