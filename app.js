@@ -1,3 +1,4 @@
+import "./config/env.js";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -121,5 +122,14 @@ app.use((err, req, res, next) => {
     ...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
   });
 });
+
+const PORT = process.env.PORT || 5001;
+
+// Only start listener in local development, not on Vercel
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`🚀 Backend server is running on port ${PORT}`);
+  });
+}
 
 export default app;
