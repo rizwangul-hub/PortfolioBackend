@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import adminDashboardRoutes from "./routes/adminRoutes.js";
 import projectRoutes from "./routes/project.js";
 import contactRoutes from "./routes/contact.js";
+import portfolioRoutes from "./routes/portfolioRoutes.js";
 import { sanitizeInput, apiLimiter } from "./middleware/security.js";
 import { connectionDB } from "./config/db.js";
 
@@ -73,11 +74,12 @@ app.use(async (req, res, next) => {
 
 app.get("/", (req, res) => {
   res.status(200).json({
-    message: "Welcome to the SmartPrep AI Backend API",
+    message: "Welcome to the FullStack Portfolio Backend API",
     status: "active",
     endpoints: {
       health: "/api/health",
       projects: "/api/projects",
+      portfolio: "/api/portfolio",
       admin: "/api/admin",
       contact: "/api/contact",
       frontend: process.env.FRONTEND_URL || "http://localhost:5173",
@@ -88,6 +90,7 @@ app.get("/", (req, res) => {
 app.use("/api/admin", adminDashboardRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/portfolio", portfolioRoutes);
 
 app.get("/api/health", (req, res) => {
   const dbState =

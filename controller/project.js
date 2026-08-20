@@ -1,10 +1,10 @@
-﻿import mongoose from "mongoose";
+import mongoose from "mongoose";
 import { Project } from "../models/Project.js";
 import { uploadToCloudinary } from "../config/cloudinary.js";
 
 export const projectCreate = async (req, res) => {
   try {
-    const { title, description, liveLink, githubLink, technologies } = req.body;
+    const { title, description, liveLink, githubLink, technologies, category } = req.body;
 
     if (!title || !description || !liveLink) {
       return res.status(400).json({
@@ -55,6 +55,7 @@ export const projectCreate = async (req, res) => {
       liveLink,
       githubLink: githubLink || "",
       technologies: techArray,
+      category: category || "Full Stack",
       user: req.user.id,
     });
 

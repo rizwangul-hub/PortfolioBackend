@@ -29,6 +29,11 @@ const projectSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    category: {
+      type: String,
+      default: "Full Stack",
+      trim: true,
+    },
     user: {
       type: String,
       required: [true, "Project owner is required"],
